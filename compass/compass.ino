@@ -89,20 +89,21 @@ void setup()
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
 
-//  while (!Serial) {
-//    delay(1); // will pause Zero, Leonardo, etc until serial console opens
-//  }
-////    Serial.println("LSM9DS1 data read demo");
-////  
-////  // Try to initialise and warn if we couldn't detect the chip
-//  if (!lsm.begin())
-//  {
-//    Serial.println("Oops ... unable to initialize the LSM9DS1. Check your wiring!");
-//    while (1);
-//  }
-////  Serial.println("Found LSM9DS1 9DOF");
-//  setupSensor();
-//  Serial.println("set up");
+  while (!Serial) {
+    delay(1); // will pause Zero, Leonardo, etc until serial console opens
+  }
+    Serial.println("LSM9DS1 data read demo");
+//  
+//  // Try to initialise and warn if we couldn't detect the chip
+  delay(1000);
+  if (!lsm.begin())
+  {
+    Serial.println("Oops ... unable to initialize the LSM9DS1. Check your wiring!");
+    while (1);
+  }
+  Serial.println("Found LSM9DS1 9DOF");
+  setupSensor();
+  Serial.println("set up");
   GPS.begin(9600);
   GPS.sendCommand("$PGCMD,33,0*6D");
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
@@ -124,35 +125,35 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {//  Serial.print("Deg: ");
-//  delay(500);
-//  Serial.println(getTrueNorth());
-  handleButtons();
+  delay(500);
+  Serial.println(getTrueNorth());
+//  handleButtons();
 //  clearGPS();
-  Serial.print("Fix: ");
-  Serial.println(GPS.fix);
-  
-  Serial.print("1: ");
-  Serial.print(loc1[0]);
-  Serial.print(", ");
-  Serial.println(loc1[1]);
-  
-  Serial.print("2: ");
-  Serial.print(loc2[0]);
-  Serial.print(", ");
-  Serial.println(loc2[1]);
-
-  Serial.print("3: ");
-  Serial.print(loc3[0]);
-  Serial.print(", ");
-  Serial.println(loc3[1]);
-
-  Serial.print("4: ");
-  Serial.print(loc4[0]);
-  Serial.print(", ");
-  Serial.println(loc4[1]);
-
-  Serial.print("a: ");
-  Serial.println(active);
+//  Serial.print("Fix: ");
+//  Serial.println(GPS.fix);
+//  
+//  Serial.print("1: ");
+//  Serial.print(loc1[0]);
+//  Serial.print(", ");
+//  Serial.println(loc1[1]);
+//  
+//  Serial.print("2: ");
+//  Serial.print(loc2[0]);
+//  Serial.print(", ");
+//  Serial.println(loc2[1]);
+//
+//  Serial.print("3: ");
+//  Serial.print(loc3[0]);
+//  Serial.print(", ");
+//  Serial.println(loc3[1]);
+//
+//  Serial.print("4: ");
+//  Serial.print(loc4[0]);
+//  Serial.print(", ");
+//  Serial.println(loc4[1]);
+//
+//  Serial.print("a: ");
+//  Serial.println(active);
 
 }//loop
 
