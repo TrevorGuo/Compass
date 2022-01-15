@@ -208,6 +208,8 @@ double getTrueNorth() {
     double magy = m.magnetic.y;
     double magx = m.magnetic.x;
 
+    
+
     double y = 180 / M_PI * acos(fmod(((-(magy-25) / 50)+1), 2)-1);
     double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)+1), 2)-1);
 
