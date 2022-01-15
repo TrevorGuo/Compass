@@ -21,6 +21,9 @@
 //#include <SoftwareSerial.h>
 #include <math.h>
 
+#include <Servo.h>
+Servo myservo;
+float currentYaw = 0;
 
 // what's the name of the hardware serial port?
 
@@ -107,6 +110,9 @@ void setup()
   Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
+
+
+  myservo.attach(9);
 }
 
 uint32_t updateTime = 1000;
@@ -117,7 +123,9 @@ void loop()                     // run over and over again
 {
   Serial.print("Deg: ");
   delay(500);
-  Serial.println(getYaw());
+  currentYaw = getYaw();
+  Serial.println(currentYaw);
+  myservo.write(90 - (currentYaw / 2));
   if(GPS.fix==1)
   {
     Serial.print(GPS.latitude);
