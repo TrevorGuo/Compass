@@ -42,7 +42,7 @@ LSM9DS1 imu;
 
 //Gyro scale 245 dps convert to radians/sec and offsets
 float Gscale = (M_PI / 180.0) * 0.00875; //245 dps scale sensitivity = 8.75 mdps/LSB
-int G_offset[3] = {75, 31, 142};
+int G_offset[3] = {-2, 1, 0};//{75, 31, 142};
 
 //Accel scale 16457.0 to normalize
  float A_B[3]
@@ -63,7 +63,7 @@ int G_offset[3] = {75, 31, 142};
   {  0.01773, -0.00301,  1.17076}};
 
 // local magnetic declination in degrees
-float declination = -14.84;
+float declination = -11.72; //-14.84;
 
 // These are the free parameters in the Mahony filter and fusion scheme,
 // Kp for proportional feedback, Ki for integral
