@@ -82,7 +82,7 @@ static float q[4] = {1.0, 0.0, 0.0, 0.0};
 static float yaw, pitch, roll; //Euler angle output
 
 
-void setup()
+void setup9DOF()
 {
   Serial.begin(9600);
   while (!Serial); //wait for connection
