@@ -33,6 +33,19 @@ Adafruit_GPS GPS(&mySerial);
 String NMEA1;
 String NMEA2;
 char c;
+#define BUTTON1 4
+#define BUTTON2 5
+#define BUTTON3 6
+#define BUTTON4 7
+int b1_duration = 0;
+int b2_duration = 0;
+int b3_duration = 0;
+int b4_duration = 0;
+double loc1[] = {-1, -1};
+double loc2[] = {-1, -1};
+double loc3[] = {-1, -1};
+double loc4[] = {-1, -1};
+int active = -1;
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
@@ -47,6 +60,10 @@ void setup()
   // also spit it out
   Serial.begin(115200);
   Serial.println("starting");
+  pinMode(BUTTON1, INPUT);
+  pinMode(BUTTON2, INPUT);
+  pinMode(BUTTON3, INPUT);
+  pinMode(BUTTON4, INPUT);
   GPS.begin(9600);
   GPS.sendCommand("$PGCMD,33,0*6D");
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
@@ -73,6 +90,56 @@ void loop()                     // run over and over again
     Serial.println("NEXT\n");
   }
 }//loop
+
+void handleButtons()
+{
+  if(BUTTON1)
+  {
+    active = 1;
+    if(b1_duration-millis() > 4000)
+    {
+      loc1[0] = getLon();
+      loc1[1] = getLat();
+    }
+  }else if(BUTTON2)
+  {
+    active = 2;
+    if(b1_duration-millis() > 4000)
+    {
+      loc2[0] = getLon();
+      loc2[1] = getLat();
+    }
+  }else if(BUTTON3)
+  {
+    active = 3;
+    if(b1_duration-millis() > 4000)
+    {
+      loc2[0] = getLon();
+      loc2[1] = getLat();
+    }
+  }else if(BUTTON4)
+  {
+    active = 4;
+    if(b1_duration-millis() > 4000)
+    {
+      loc2[0] = getLon();
+      loc2[1] = getLat();
+    }
+  }else
+  {
+    
+  }
+}
+
+double getLon()
+{
+  return 1;
+}
+
+double getLat()
+{
+  return 1;
+}
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
