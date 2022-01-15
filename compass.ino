@@ -15,7 +15,6 @@
 // Pick one up today at the Adafruit electronics shop
 // and help support open source hardware & software! -ada
 
-
 #include <Adafruit_GPS.h>
 
 // what's the name of the hardware serial port?
@@ -52,6 +51,8 @@ void setup()
 }
 
 uint32_t updateTime = 1000;
+double latPoint = 0.0;
+double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
@@ -64,3 +65,47 @@ void loop()                     // run over and over again
     Serial.write(c);
   }
 }//loop
+
+//https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
+//The math/code to find the bearing between two coordinates was found at the above link. 
+double getDegrees(double lat1, double long1, double lat2, double long2) {
+    double dLon = (long2 - long1);
+
+    double y = Math.sin(dLon) * Math.cos(lat2);
+    double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)
+            * Math.cos(lat2) * Math.cos(dLon);
+
+    double brng = Math.atan2(y, x);
+
+    brng = Math.toDegrees(brng);
+    brng = (brng + 360) % 360;
+    brng = 360 - brng; //This line might not be needed?
+
+    return brng;
+}
+
+void savePoint(double lat, double lon) {
+    latPoint = lat;
+    longPoint = lon;
+}
+
+bool rotateDirection(double oldBrng, double newBrng) { //Return true for rotating CCW, and false for CW
+    if (newBrng > oldBrng) {
+        return (newBrng - oldBrng) < 180;
+    }
+    else {
+        return (oldBrng - newBrng) > 180;
+    }
+}
+
+double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, negative rotates CCW
+    double degreeDelta = newBrng - oldBrng;
+    if (degreeDelta < 180 && degreeDelta >= 0) //newBrng > oldBrng, and shortest rotation is CW
+        return degreeDelta;
+    else if (degreeDelta > 180 && degreeDelta < 360) //newBrng > oldBrng, and shortest rotation is CCW
+        return degreeDelta - 360;
+    else if (degreeDelta > -180 && degreeDelta < 0) //newBrng < oldBrng, and shortest rotation is CCW
+        return degreeDelta;
+    else //newBrng < oldBrng, and shortest rotation is CW
+        return 360 + degreeDelta;
+}
