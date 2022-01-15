@@ -117,7 +117,7 @@ void loop()                     // run over and over again
 {
   Serial.print("Deg: ");
   delay(500);
-  Serial.println(getTrueNorth());
+  Serial.println(getYaw());
   if(GPS.fix==1)
   {
     Serial.print(GPS.latitude);

@@ -97,7 +97,7 @@ void setup()
   }
 }
 
-void loop()
+float getYaw()
 {
   static char updated = 0; //flags for sensor updates
   static float Gxyz[3], Axyz[3], Mxyz[3]; //centered and scaled gyro/accel/mag data
@@ -175,6 +175,7 @@ void loop()
       lastPrint = millis(); // Update lastPrint time
     }
   }
+  return yaw;
   // consider averaging a few headings for better results
 }
 
