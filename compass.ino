@@ -15,7 +15,9 @@
 // Pick one up today at the Adafruit electronics shop
 // and help support open source hardware & software! -ada
 
-#include <Adafruit_GPS.h>
+#include <Adafruit_GPS.h> //Adafruit GPS Library
+//Adafruit LSM9DS1 library
+//Adafruit Unified Sensor library
 
 // what's the name of the hardware serial port?
 #define GPSSerial Serial1
@@ -68,7 +70,7 @@ void loop()                     // run over and over again
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
-double getDegrees(double lat1, double long1, double lat2, double long2) {
+double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
     double dLon = (long2 - long1);
 
     double y = Math.sin(dLon) * Math.cos(lat2);
@@ -89,16 +91,8 @@ void savePoint(double lat, double lon) {
     longPoint = lon;
 }
 
-bool rotateDirection(double oldBrng, double newBrng) { //Return true for rotating CCW, and false for CW
-    if (newBrng > oldBrng) {
-        return (newBrng - oldBrng) < 180;
-    }
-    else {
-        return (oldBrng - newBrng) > 180;
-    }
-}
-
 double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, negative rotates CCW
+    /* Continuous Circuit
     double degreeDelta = newBrng - oldBrng;
     if (degreeDelta < 180 && degreeDelta >= 0) //newBrng > oldBrng, and shortest rotation is CW
         return degreeDelta;
@@ -108,4 +102,10 @@ double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, n
         return degreeDelta;
     else //newBrng < oldBrng, and shortest rotation is CW
         return 360 + degreeDelta;
+    */
+   //N is 90, S is 0 and 180
+   double oldDegree = 90 - (oldBrng / 2);
+   double newDegree = 90 - (newBrng / 2);
+
+   return newDegree - oldDegree;
 }
