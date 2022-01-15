@@ -16,14 +16,24 @@
 // and help support open source hardware & software! -ada
 
 #include <Adafruit_GPS.h> //Adafruit GPS Library
+#include <SoftwareSerial.h>
+#include <Math.h>
+
 //Adafruit LSM9DS1 library
 //Adafruit Unified Sensor library
 
+
 // what's the name of the hardware serial port?
-#define GPSSerial Serial1
 
 // Connect to the GPS on the hardware port
-Adafruit_GPS GPS(&GPSSerial);
+
+SoftwareSerial mySerial(3, 2);
+Adafruit_GPS GPS(&mySerial);
+
+String NMEA1;
+String NMEA2;
+char c;
+
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
@@ -36,20 +46,15 @@ void setup()
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
   Serial.begin(115200);
+  Serial.println("starting");
+  GPS.begin(9600);
+  GPS.sendCommand("$PGCMD,33,0*6D");
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   delay(1000);
   Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
-  GPS.begin(9600);
-
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_OFF);
-
-  while (GPSSerial.available())
-     GPSSerial.read();
-
-  delay(1000);
-  GPS.sendCommand("$PMTK622,1*29");
-  Serial.println("----------------------------------------------------");
 }
 
 uint32_t updateTime = 1000;
@@ -58,13 +63,14 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
-  if (Serial.available()) {
-    char c = Serial.read();
-    GPSSerial.write(c);
-  }
-  if (GPSSerial.available()) {
-    char c = GPSSerial.read();
-    Serial.write(c);
+  readGPS();
+  if(GPS.fix==1)
+  {
+    Serial.print(GPS.latitude);
+    Serial.print(GPS.lat);
+    Serial.print(GPS.longitude);
+    Serial.println(GPS.lon);
+    Serial.println("NEXT\n");
   }
 }//loop
 
@@ -73,13 +79,13 @@ void loop()                     // run over and over again
 double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
     double dLon = (long2 - long1);
 
-    double y = Math.sin(dLon) * Math.cos(lat2);
-    double x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1)
-            * Math.cos(lat2) * Math.cos(dLon);
+    double y = sin(dLon) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1)
+            * cos(lat2) * cos(dLon);
 
-    double brng = Math.atan2(y, x);
+    double brng = atan2(y, x);
 
-    brng = Math.toDegrees(brng);
+    brng = toDegrees(brng);
     brng = (brng + 360) % 360;
     brng = 360 - brng; //This line might not be needed?
 
@@ -108,4 +114,44 @@ double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, n
    double newDegree = 90 - (newBrng / 2);
 
    return newDegree - oldDegree;
+}
+
+void readGPS()
+{
+  clearGPS();
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA());
+  NMEA1=GPS.lastNMEA();
+  
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA());
+  NMEA2=GPS.lastNMEA();
+  Serial.println(NMEA1);
+  Serial.println(NMEA2);
+  Serial.println("--");
+}
+
+void clearGPS() //clear old data from serial port
+{
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA());
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA());
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
+  GPS.parse(GPS.lastNMEA());
 }
