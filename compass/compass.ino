@@ -61,10 +61,10 @@ void setupSensor()
   //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_16G);
   
   // 2.) Set the magnetometer sensitivity
-  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
+//  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_8GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_12GAUSS);
-  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
+  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
 
   // 3.) Setup the gyroscope
   lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
@@ -198,7 +198,7 @@ double getLat()
 
 double getTrueNorth() {
     lsm.read();  /* ask it to read in the data */ 
-    Serial.println("read");
+//    Serial.println("read");
 
     /* Get a new sensor event */ 
     sensors_event_t a, m, g, temp;
@@ -208,14 +208,39 @@ double getTrueNorth() {
     double magy = m.magnetic.y;
     double magx = m.magnetic.x;
 
-    double y = 180 / M_PI * acos(fmod(((-(magy-25) / 50)+1), 2)-1);
-    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)+1), 2)-1);
+//    double y = 180 / M_PI * acos(fmod(((-(magy) / 50)+1), 2)-1);
+//    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)), 2));
 
-    double degree = y;
-    if (x < 0) {
-      degree = 360 - degree;
+    double deg = 180 / M_PI * atan2(abs(magy), abs(magx));
+    
+    Serial.println(deg);
+    if(magx < 0 && magy > 0)
+    {
+      deg = 180-deg;
+    }else if(magx < 0 && magy < 0)
+    {
+      deg = 180+deg;
+    }else if(magx > 0 && magy < 0)
+    {
+      deg = 360-deg;
     }
-    return degree;
+    
+    Serial.print("magx: ");
+    Serial.println(magx);
+    Serial.print("magy: ");
+    Serial.println(magy);
+    return deg;
+//    Serial.print("x: ");
+//    Serial.println(x);
+//    Serial.print("y: ");
+//    Serial.println(y);
+//    
+
+//    double degree = y;
+//    if (x < 0) {
+//      degree = 360 - degree;
+//    }
+//    return degree;
 }
 
 void savePoint(double lat, double lon) {
