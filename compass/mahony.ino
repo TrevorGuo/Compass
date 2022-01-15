@@ -42,7 +42,7 @@ LSM9DS1 imu;
 
 //Gyro scale 245 dps convert to radians/sec and offsets
 float Gscale = (M_PI / 180.0) * 0.00875; //245 dps scale sensitivity = 8.75 mdps/LSB
-int G_offset[3] = {75, 31, 142};
+int G_offset[3] = {-2, 1, 0};//{75, 31, 142};
 
 //Accel scale 16457.0 to normalize
  float A_B[3]
@@ -63,7 +63,7 @@ int G_offset[3] = {75, 31, 142};
   {  0.01773, -0.00301,  1.17076}};
 
 // local magnetic declination in degrees
-float declination = -14.84;
+float declination = -11.72; //-14.84;
 
 // These are the free parameters in the Mahony filter and fusion scheme,
 // Kp for proportional feedback, Ki for integral
@@ -82,7 +82,7 @@ static float q[4] = {1.0, 0.0, 0.0, 0.0};
 static float yaw, pitch, roll; //Euler angle output
 
 
-void setup()
+void setup9DOF()
 {
   Serial.begin(9600);
   while (!Serial); //wait for connection
@@ -97,7 +97,7 @@ void setup()
   }
 }
 
-void loop()
+float getYaw()
 {
   static char updated = 0; //flags for sensor updates
   static float Gxyz[3], Axyz[3], Mxyz[3]; //centered and scaled gyro/accel/mag data
@@ -163,6 +163,7 @@ void loop()
     yaw = -(yaw + declination);
     if (yaw < 0) yaw += 360.0;
     if (yaw >= 360.0) yaw -= 360.0;
+    if (yaw > 180) yaw -= 360.0;
 // skip ypr printing    
     if (millis() - lastPrint > PRINT_SPEED) {
       Serial.print("ypr ");
@@ -175,6 +176,7 @@ void loop()
       lastPrint = millis(); // Update lastPrint time
     }
   }
+  return yaw;
   // consider averaging a few headings for better results
 }
 

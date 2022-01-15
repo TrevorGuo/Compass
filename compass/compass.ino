@@ -21,6 +21,9 @@
 //#include <SoftwareSerial.h>
 #include <math.h>
 
+#include <Servo.h>
+Servo myservo;
+float currentYaw = 0;
 
 // what's the name of the hardware serial port?
 
@@ -110,6 +113,9 @@ void setup()
   Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
+
+
+  myservo.attach(9);
 }
 
 uint32_t updateTime = 1000;
@@ -117,8 +123,7 @@ double latPoint = 0.0;
 double longPoint = 0.0;
 
 void loop()                     // run over and over again
-{
-//  Serial.print("Deg: ");
+{//  Serial.print("Deg: ");
 //  delay(500);
 //  Serial.println(getTrueNorth());
   handleButtons();
@@ -148,6 +153,7 @@ void loop()                     // run over and over again
 
   Serial.print("a: ");
   Serial.println(active);
+
 }//loop
 
 void handleButtons()
@@ -221,21 +227,21 @@ double getLat()
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
-/*double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
-    double dLon = (long2 - long1);
+float getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
+    float dLon = (long2 - long1);
 
-    double y = sin(dLon) * cos(lat2);
-    double x = cos(lat1) * sin(lat2) - sin(lat1)
+    float y = sin(dLon) * cos(lat2);
+    float x = cos(lat1) * sin(lat2) - sin(lat1)
             * cos(lat2) * cos(dLon);
 
-    double brng = atan2(y, x);
+    float brng = atan2(y, x);
 
-    brng = toDegrees(brng);
-    brng = (brng + 360) % 360;
+    brng = brng / M_PI * 180;
+    brng = fmod((brng + 360),360);
     brng = 360 - brng; //This line might not be needed?
 
     return brng;
-}*/
+}
 
 double getTrueNorth() {
     lsm.read();  /* ask it to read in the data */ 
