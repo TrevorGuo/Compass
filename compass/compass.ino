@@ -19,7 +19,7 @@
 #include <Adafruit_LSM9DS1.h>
 #include <Adafruit_Sensor.h>
 //#include <SoftwareSerial.h>
-#include <Math.h>
+#include <math.h>
 
 
 // what's the name of the hardware serial port?
@@ -84,6 +84,21 @@ void setup()
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
+
+  while (!Serial) {
+    delay(1); // will pause Zero, Leonardo, etc until serial console opens
+  }
+//    Serial.println("LSM9DS1 data read demo");
+//  
+//  // Try to initialise and warn if we couldn't detect the chip
+  if (!lsm.begin())
+  {
+    Serial.println("Oops ... unable to initialize the LSM9DS1. Check your wiring!");
+    while (1);
+  }
+//  Serial.println("Found LSM9DS1 9DOF");
+  setupSensor();
+  Serial.println("set up");
   GPS.begin(9600);
   GPS.sendCommand("$PGCMD,33,0*6D");
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
@@ -100,8 +115,9 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
-  Serial.print(getTrueNorth());
-  readGPS();
+  Serial.print("Deg: ");
+  delay(500);
+  Serial.println(getTrueNorth());
   if(GPS.fix==1)
   {
     Serial.print(GPS.latitude);
@@ -182,6 +198,7 @@ double getLat()
 
 double getTrueNorth() {
     lsm.read();  /* ask it to read in the data */ 
+    Serial.println("read");
 
     /* Get a new sensor event */ 
     sensors_event_t a, m, g, temp;
@@ -191,8 +208,8 @@ double getTrueNorth() {
     double magy = m.magnetic.y;
     double magx = m.magnetic.x;
 
-    double y = 180 / M_PI * acos(-(magy - 25) / 50);
-    double x = 180 / M_PI * asin((magx - 3) / 50);
+    double y = 180 / M_PI * acos(fmod(((-(magy-25) / 50)+1), 2)-1);
+    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)+1), 2)-1);
 
     double degree = y;
     if (x < 0) {
