@@ -44,6 +44,7 @@ double loc1[] = {-1, -1};
 double loc2[] = {-1, -1};
 double loc3[] = {-1, -1};
 double loc4[] = {-1, -1};
+
 int active = -1;
 
 
@@ -61,10 +62,10 @@ void setupSensor()
   //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_16G);
   
   // 2.) Set the magnetometer sensitivity
-//  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
+  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_8GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_12GAUSS);
-  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
+//  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
 
   // 3.) Setup the gyroscope
   lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
@@ -118,14 +119,6 @@ void loop()                     // run over and over again
   Serial.print("Deg: ");
   delay(500);
   Serial.println(getTrueNorth());
-  if(GPS.fix==1)
-  {
-    Serial.print(GPS.latitude);
-    Serial.print(GPS.lat);
-    Serial.print(GPS.longitude);
-    Serial.println(GPS.lon);
-    Serial.println("NEXT\n");
-  }
 }//loop
 
 void handleButtons()
@@ -170,12 +163,24 @@ void handleButtons()
 
 double getLon()
 {
-  return 1;
+  double retval = -1;
+  if(GPS.fix==1)
+  {
+    retval = GPS.longitude;
+    if(GPS.lon == "W"){retval*=-1;};
+  }
+  return retval;
 }
 
 double getLat()
 {
-  return 1;
+  double retval = -1;
+  if(GPS.fix==1)
+  {
+    retval = GPS.latitude;
+    if(GPS.lat == 1.2){retval*=-1;};
+  }
+  return retval;
 }
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
