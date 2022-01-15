@@ -16,11 +16,10 @@
 // and help support open source hardware & software! -ada
 
 #include <Adafruit_GPS.h> //Adafruit GPS Library
-#include <SoftwareSerial.h>
+#include <Adafruit_LSM9DS1.h>
+#include <Adafruit_Sensor.h>
+//#include <SoftwareSerial.h>
 #include <Math.h>
-
-//Adafruit LSM9DS1 library
-//Adafruit Unified Sensor library
 
 
 // what's the name of the hardware serial port?
@@ -52,6 +51,27 @@ int active = -1;
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO  true
 
+Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
+void setupSensor()
+{
+  // 1.) Set the accelerometer range
+  lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_2G);
+  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_4G);
+  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_8G);
+  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_16G);
+  
+  // 2.) Set the magnetometer sensitivity
+  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
+  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_8GAUSS);
+  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_12GAUSS);
+  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
+
+  // 3.) Setup the gyroscope
+  lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
+  //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_500DPS);
+  //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_2000DPS);
+}
+
 void setup()
 {
   //while (!Serial);  // uncomment to have the sketch wait until Serial is ready
@@ -80,6 +100,7 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
+  Serial.print(getTrueNorth());
   readGPS();
   if(GPS.fix==1)
   {
@@ -143,7 +164,7 @@ double getLat()
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
-double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
+/*double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
     double dLon = (long2 - long1);
 
     double y = sin(dLon) * cos(lat2);
@@ -157,6 +178,27 @@ double getBearingToWaypoint(double lat1, double long1, double lat2, double long2
     brng = 360 - brng; //This line might not be needed?
 
     return brng;
+}*/
+
+double getTrueNorth() {
+    lsm.read();  /* ask it to read in the data */ 
+
+    /* Get a new sensor event */ 
+    sensors_event_t a, m, g, temp;
+
+    lsm.getEvent(&a, &m, &g, &temp); 
+
+    double magy = m.magnetic.y;
+    double magx = m.magnetic.x;
+
+    double y = 180 / M_PI * acos(-(magy - 25) / 50);
+    double x = 180 / M_PI * asin((magx - 3) / 50);
+
+    double degree = y;
+    if (x < 0) {
+      degree = 360 - degree;
+    }
+    return degree;
 }
 
 void savePoint(double lat, double lon) {
