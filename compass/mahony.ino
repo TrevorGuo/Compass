@@ -163,6 +163,7 @@ float getYaw()
     yaw = -(yaw + declination);
     if (yaw < 0) yaw += 360.0;
     if (yaw >= 360.0) yaw -= 360.0;
+    if (yaw > 180) yaw -= 360.0;
 // skip ypr printing    
     if (millis() - lastPrint > PRINT_SPEED) {
       Serial.print("ypr ");
