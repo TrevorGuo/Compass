@@ -20,8 +20,8 @@
 #include <Adafruit_Sensor.h>
 #include <SoftwareSerial.h>
 #include <math.h>
-
 #include <Servo.h>
+
 Servo myservo;
 float currentYaw = 0;
 
@@ -125,35 +125,19 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {//  Serial.print("Deg: ");
+  Serial.print("Deg: ");
   delay(500);
-  Serial.println(getTrueNorth());
-//  handleButtons();
-//  clearGPS();
-//  Serial.print("Fix: ");
-//  Serial.println(GPS.fix);
-//  
-//  Serial.print("1: ");
-//  Serial.print(loc1[0]);
-//  Serial.print(", ");
-//  Serial.println(loc1[1]);
-//  
-//  Serial.print("2: ");
-//  Serial.print(loc2[0]);
-//  Serial.print(", ");
-//  Serial.println(loc2[1]);
-//
-//  Serial.print("3: ");
-//  Serial.print(loc3[0]);
-//  Serial.print(", ");
-//  Serial.println(loc3[1]);
-//
-//  Serial.print("4: ");
-//  Serial.print(loc4[0]);
-//  Serial.print(", ");
-//  Serial.println(loc4[1]);
-//
-//  Serial.print("a: ");
-//  Serial.println(active);
+  currentYaw = getYaw();
+  Serial.println(currentYaw);
+  myservo.write(90 - (currentYaw / 2));
+  if(GPS.fix==1)
+  {
+    Serial.print(GPS.latitude);
+    Serial.print(GPS.lat);
+    Serial.print(GPS.longitude);
+    Serial.println(GPS.lon);
+    Serial.println("NEXT\n");
+  }
 
 }//loop
 
