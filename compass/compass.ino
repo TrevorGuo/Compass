@@ -22,7 +22,6 @@
 #include <SPI.h>
 #include <SparkFunLSM9DS1.h>
 #include <math.h>
-#include <Servo.h>
 
 Servo myservo;
 float currentYaw = 0;
@@ -31,7 +30,6 @@ float currentYaw = 0;
 
 // Connect to the GPS on the hardware port
 
-//Serial mySerial;
 Adafruit_GPS GPS(&Serial);
 
 String NMEA1;
@@ -94,8 +92,34 @@ void loop()                     // run over and over again
   currentYaw = getYaw();
   Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
+
+  clearGPS();
   currPos[0] = getLon();
   currPos[1] = getLat();
+  handleButtons();
+
+  Serial.print("Fix: ");
+  Serial.println(GPS.fix);
+
+  Serial.print("C: ");
+  Serial.print(currPos[0]);
+  Serial.println(currPos[1]);
+  
+  Serial.print("1: ");
+  Serial.print(loc1[0]);
+  Serial.println(loc1[1]);
+
+  Serial.print("2: ");
+  Serial.print(loc2[0]);
+  Serial.println(loc2[1]);
+
+  Serial.print("3: ");
+  Serial.print(loc3[0]);
+  Serial.println(loc3[1]);
+
+  Serial.print("4: ");
+  Serial.print(loc4[0]);
+  Serial.println(loc4[1]);
   
 }//loop
 
