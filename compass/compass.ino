@@ -18,18 +18,24 @@
 #include <Adafruit_GPS.h> //Adafruit GPS Library
 #include <Adafruit_LSM9DS1.h>
 #include <Adafruit_Sensor.h>
-<<<<<<< HEAD
 #include <SoftwareSerial.h>
 #include <math.h>
 #include <Servo.h>
 
 Servo myservo;
 float currentYaw = 0;
-=======
-//#include <SoftwareSerial.h>
+
+#include <Wire.h>
+#include <SPI.h>
+#include <SparkFunLSM9DS1.h>
+//#include <Adafruit_LSM9DS1.h>
+//#include <Adafruit_Sensor.h>
+#include <SoftwareSerial.h>
 #include <math.h>
 
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
+#include <Servo.h>
+Servo myservo;
+float currentYaw = 0;
 
 // what's the name of the hardware serial port?
 
@@ -53,42 +59,13 @@ double loc1[] = {-1, -1};
 double loc2[] = {-1, -1};
 double loc3[] = {-1, -1};
 double loc4[] = {-1, -1};
-<<<<<<< HEAD
 double currPos[2];
-
-=======
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
 int active = -1;
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO  true
-
-Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
-void setupSensor()
-{
-  // 1.) Set the accelerometer range
-  lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_2G);
-  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_4G);
-  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_8G);
-  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_16G);
-  
-  // 2.) Set the magnetometer sensitivity
-<<<<<<< HEAD
-  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
-=======
-//  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
-  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_8GAUSS);
-  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_12GAUSS);
-  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
-
-  // 3.) Setup the gyroscope
-  lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
-  //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_500DPS);
-  //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_2000DPS);
-}
 
 void setup()
 {
@@ -102,40 +79,20 @@ void setup()
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
-
-  while (!Serial) {
-    delay(1); // will pause Zero, Leonardo, etc until serial console opens
-  }
-<<<<<<< HEAD
-    Serial.println("LSM9DS1 data read demo");
-//  
-//  // Try to initialise and warn if we couldn't detect the chip
-  delay(1000);
-=======
-//    Serial.println("LSM9DS1 data read demo");
-//  
-//  // Try to initialise and warn if we couldn't detect the chip
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
-  if (!lsm.begin())
-  {
-    Serial.println("Oops ... unable to initialize the LSM9DS1. Check your wiring!");
-    while (1);
-  }
-<<<<<<< HEAD
-  Serial.println("Found LSM9DS1 9DOF");
-=======
-//  Serial.println("Found LSM9DS1 9DOF");
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
-  setupSensor();
-  Serial.println("set up");
+  setup9DOF();
   GPS.begin(9600);
   GPS.sendCommand("$PGCMD,33,0*6D");
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  
   delay(1000);
+  clearGPS();
   Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
+
+
+  myservo.attach(9);
 }
 
 uint32_t updateTime = 1000;
@@ -143,78 +100,91 @@ double latPoint = 0.0;
 double longPoint = 0.0;
 
 void loop()                     // run over and over again
-<<<<<<< HEAD
-{//  Serial.print("Deg: ");
-  Serial.print("Deg: ");
+{
   currentYaw = getYaw();
   Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
   clearGPS();
   currPos[0] = getLon();
   currPos[1] = getLat();
-=======
-{
-  Serial.print("Deg: ");
-  delay(500);
-  Serial.println(getYaw());
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
-  if(GPS.fix==1)
-  {
-    Serial.print(GPS.latitude);
-    Serial.print(GPS.lat);
-    Serial.print(GPS.longitude);
-    Serial.println(GPS.lon);
-    Serial.println("NEXT\n");
-  }
-<<<<<<< HEAD
+/*
+  Serial.print("Fix: ");
+  Serial.println(GPS.fix);
+  
+  Serial.print("1: ");
+  Serial.print(loc1[0]);
+  Serial.print(", ");
+  Serial.println(loc1[1]);
+  
+  Serial.print("2: ");
+  Serial.print(loc2[0]);
+  Serial.print(", ");
+  Serial.println(loc2[1]);
 
-=======
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
+  Serial.print("3: ");
+  Serial.print(loc3[0]);
+  Serial.print(", ");
+  Serial.println(loc3[1]);
+
+  Serial.print("4: ");
+  Serial.print(loc4[0]);
+  Serial.print(", ");
+  Serial.println(loc4[1]);
+
+  Serial.print("a: ");
+  Serial.println(active);
+*/
 }//loop
 
 void handleButtons()
 {
-  if(BUTTON1)
+  if(digitalRead(BUTTON1))
   {
     active = 1;
     if(b1_duration-millis() > 4000)
     {
+      clearGPS();
       loc1[0] = getLon();
       loc1[1] = getLat();
     }
-  }else if(BUTTON2)
+  }else if(digitalRead(BUTTON2))
   {
     active = 2;
-    if(b1_duration-millis() > 4000)
+    if(b2_duration-millis() > 4000)
     {
+      clearGPS();
       loc2[0] = getLon();
       loc2[1] = getLat();
     }
-  }else if(BUTTON3)
+  }else if(digitalRead(BUTTON3))
   {
     active = 3;
-    if(b1_duration-millis() > 4000)
+    if(b3_duration-millis() > 4000)
     {
-      loc2[0] = getLon();
-      loc2[1] = getLat();
+      clearGPS();
+      loc3[0] = getLon();
+      loc3[1] = getLat();
     }
-  }else if(BUTTON4)
+  }else if(digitalRead(BUTTON4))
   {
     active = 4;
-    if(b1_duration-millis() > 4000)
+    if(b4_duration-millis() > 4000)
     {
-      loc2[0] = getLon();
-      loc2[1] = getLat();
+      clearGPS();
+      loc4[0] = getLon();
+      loc4[1] = getLat();
     }
   }else
   {
-    
+    b1_duration = millis();
+    b2_duration = millis();
+    b3_duration = millis();
+    b4_duration = millis();
   }
 }
 
 double getLon()
 {
-<<<<<<< HEAD
   double retval = -1;
   if(GPS.fix==1)
   {
@@ -222,39 +192,21 @@ double getLon()
     if(GPS.lon == 'W'){retval*=-1;};
   }
   return retval;
-=======
-  return 1;
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
 }
 
 double getLat()
 {
-<<<<<<< HEAD
-  double retval = -1;
   if(GPS.fix==1)
   {
     retval = GPS.latitude;
     if(GPS.lat == 'S'){retval*=-1;};
   }
   return retval;
-=======
-  return 1;
->>>>>>> 6da34bc72aed8d622559fe877c43a3460fe86d6e
 }
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
-
-float toRadians(float degree) {
-  return degree * M_PI / 180;
-}
-
-float getBearingToWaypoint(float lat1, float long1, float lat2, float long2) {
-    lat1 = toRadians(lat1);
-    long1 = toRadians(long1);
-    lat2 = toRadians(lat2);
-    long2 = toRadians(long2);
-
+float getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
     float dLon = (long2 - long1);
 
     float y = sin(dLon) * cos(lat2);
@@ -263,54 +215,11 @@ float getBearingToWaypoint(float lat1, float long1, float lat2, float long2) {
 
     float brng = atan2(y, x);
 
-    return brng / M_PI * 180;
-}
+    brng = brng / M_PI * 180;
+    brng = fmod((brng + 360),360);
+    brng = 360 - brng; //This line might not be needed?
 
-double getTrueNorth() {
-    lsm.read();  /* ask it to read in the data */ 
-//    Serial.println("read");
-
-    /* Get a new sensor event */ 
-    sensors_event_t a, m, g, temp;
-
-    lsm.getEvent(&a, &m, &g, &temp); 
-
-    double magy = m.magnetic.y;
-    double magx = m.magnetic.x;
-
-//    double y = 180 / M_PI * acos(fmod(((-(magy) / 50)+1), 2)-1);
-//    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)), 2));
-
-    double deg = 180 / M_PI * atan2(abs(magy), abs(magx));
-    
-    Serial.println(deg);
-    if(magx < 0 && magy > 0)
-    {
-      deg = 180-deg;
-    }else if(magx < 0 && magy < 0)
-    {
-      deg = 180+deg;
-    }else if(magx > 0 && magy < 0)
-    {
-      deg = 360-deg;
-    }
-    
-    Serial.print("magx: ");
-    Serial.println(magx);
-    Serial.print("magy: ");
-    Serial.println(magy);
-    return deg;
-//    Serial.print("x: ");
-//    Serial.println(x);
-//    Serial.print("y: ");
-//    Serial.println(y);
-//    
-
-//    double degree = y;
-//    if (x < 0) {
-//      degree = 360 - degree;
-//    }
-//    return degree;
+    return brng;
 }
 
 double getTrueNorth() {
