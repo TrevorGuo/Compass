@@ -31,7 +31,7 @@ float currentYaw = 0;
 
 // Connect to the GPS on the hardware port
 
-//Serial mySerial;
+//SoftwareSerial mySerial(3, 2);
 Adafruit_GPS GPS(&Serial);
 
 String NMEA1;
@@ -64,8 +64,8 @@ void setup()
 
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
-  Serial.begin(115200);
-  Serial.println("starting");
+  Serial.begin(9600);
+  //Serial.println("starting");
   pinMode(BUTTON1, INPUT);
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
@@ -78,12 +78,12 @@ void setup()
   
   delay(1000);
   clearGPS();
-  Serial.println("Adafruit GPS logging data dump!");
+  //Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
 
 
-  myservo.attach(9);
+  myservo.attach(12);
 }
 
 uint32_t updateTime = 1000;
@@ -92,12 +92,42 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
-  currentYaw = getYaw();
-  Serial.println(currentYaw);
-  myservo.write(90 - (currentYaw / 2));
-  currPos[0] = getLon();
-  currPos[1] = getLat();
+
+  clearGPS();
+  //handleButtons();
   
+  //Serial.print("Fix: ");
+  //Serial.println(GPS.fix);
+  
+  //Serial.print("1: ");
+  //Serial.print(loc1[0]);
+  //Serial.print(", ");
+  //Serial.println(loc1[1]);
+  
+  //Serial.print("2: ");
+  //Serial.print(loc2[0]);
+  //Serial.print(", ");
+  //Serial.println(loc2[1]);
+
+  //Serial.print("3: ");
+  //Serial.print(loc3[0]);
+  //Serial.print(", ");
+  //Serial.println(loc3[1]);
+
+  //Serial.print("4: ");
+  //Serial.print(loc4[0]);
+  //Serial.print(", ");
+  //Serial.println(loc4[1]);
+
+  //Serial.print("a: ");
+  //Serial.println(active);
+
+  //delay(1000);
+  currentYaw = getYaw();
+  //Serial.println(currentYaw);
+  myservo.write(90 - (currentYaw / 2));
+
+  //myservo.write(90 - (currentYaw + getBearingToWayPoint(lat1,long1,lat2,long2))/2);
 }//loop
 
 void handleButtons()
@@ -227,26 +257,26 @@ void readGPS()
   }
   GPS.parse(GPS.lastNMEA());
   NMEA2=GPS.lastNMEA();
-  Serial.println(NMEA1);
-  Serial.println(NMEA2);
-  Serial.println("--");
+  //Serial.println(NMEA1);
+  //Serial.println(NMEA2);
+  //Serial.println("--");
 }
 
 void clearGPS() //clear old data from serial port
 {
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
+//  while(!GPS.newNMEAreceived())
+//  {
+//    c=GPS.read();
+//  }
   GPS.parse(GPS.lastNMEA());
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
+//  while(!GPS.newNMEAreceived())
+//  {
+//    c=GPS.read();
+//  }
   GPS.parse(GPS.lastNMEA());
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
+//  while(!GPS.newNMEAreceived())
+//  {
+//    c=GPS.read();
+//  }
   GPS.parse(GPS.lastNMEA());
 }
