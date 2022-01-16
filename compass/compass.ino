@@ -47,8 +47,8 @@ unsigned long b2_duration = 0;
 unsigned long b3_duration = 0;
 unsigned long b4_duration = 0;
 
-double powellLat = 3407.18620578034
-double powellLong =  -11844.217660203313
+double powellLat = 3407.18620578034;
+double powellLong =  -11844.217660203313;
 double loc1[] = {powellLat, powellLong};
 double loc2[] = {powellLat, powellLong};
 double loc3[] = {powellLat, powellLong};
