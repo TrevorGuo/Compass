@@ -224,7 +224,7 @@ void handleButtons()
 
 double getLon()
 {
-  double retval = -1;
+  double retval = currPos[0];
   if(GPS.fix)
   {
       retval = GPS.longitude;
@@ -235,7 +235,7 @@ double getLon()
 
 double getLat()
 {
-  double retval = -1;
+  double retval = currPos[1];
   if(GPS.fix)
   {
     retval = GPS.latitude;
