@@ -24,7 +24,6 @@
 #include <math.h>
 
 Servo myservo;
-float currentYaw = 0;
 
 // what's the name of the hardware serial port?
 
@@ -47,21 +46,23 @@ unsigned long b1_duration = 0;
 unsigned long b2_duration = 0;
 unsigned long b3_duration = 0;
 unsigned long b4_duration = 0;
-double loc1[] = {-1, -1};
-double loc2[] = {-1, -1};
-double loc3[] = {-1, -1};
-double loc4[] = {-1, -1};
-double currPos[] = {0,0};
-int active = -1;
 
-double lat1;
+double powellLat = 3407.18620578034
+double powellLong =  -11844.217660203313
+double loc1[] = {powellLat, powellLong};
+double loc2[] = {powellLat, powellLong};
+double loc3[] = {powellLat, powellLong};
+double loc4[] = {powellLat, powellLong};
+double currPos[] = {0,0};
+//int active = -1;
+
 double lat2 = -1;
-double long1;
 double long2 = -1; 
 
- float north;
-  double bearing;
-  double heading;
+float currentYaw = 0;
+double north;
+double bearing;
+double heading;
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
@@ -96,8 +97,6 @@ void setup()
 }
 
 uint32_t updateTime = 1000;
-double latPoint = 0.0;
-double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
@@ -124,10 +123,10 @@ void loop()                     // run over and over again
     Serial.print("Fix: "); Serial.print((int)GPS.fix);
     Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
     if (GPS.fix) {
-      Serial.print("Location: ");
-      Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
-      Serial.print(", ");
-      Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
+    Serial.print("Location: ");
+    Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
+    Serial.print(", ");
+    Serial.print(GPS.longitude, 4); Serial.println(GPS.lon);
 //      Serial.print("Speed (knots): "); Serial.println(GPS.speed);
 //      Serial.print("Angle: "); Serial.println(GPS.angle);
 //      Serial.print("Altitude: "); Serial.println(GPS.altitude);
@@ -283,73 +282,53 @@ double getBearingToWaypoint(double lat1, double long1, double lat2, double long2
 
     double brng = atan2(y, x);
 
-    return brng / M_PI * 180;
+    brng = brng / M_PI * 180;
+    if (brng > 180) {
+      brng -= 360;
+    }
+    return brng;
 }
 
-void savePoint(double lat, double lon) {
-    latPoint = lat;
-    longPoint = lon;
-}
-
-double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, negative rotates CCW
-    /* Continuous Circuit
-    double degreeDelta = newBrng - oldBrng;
-    if (degreeDelta < 180 && degreeDelta >= 0) //newBrng > oldBrng, and shortest rotation is CW
-        return degreeDelta;
-    else if (degreeDelta > 180 && degreeDelta < 360) //newBrng > oldBrng, and shortest rotation is CCW
-        return degreeDelta - 360;
-    else if (degreeDelta > -180 && degreeDelta < 0) //newBrng < oldBrng, and shortest rotation is CCW
-        return degreeDelta;
-    else //newBrng < oldBrng, and shortest rotation is CW
-        return 360 + degreeDelta;
-    */
-   //N is 90, S is 0 and 180
-   double oldDegree = 90 - (oldBrng / 2);
-   double newDegree = 90 - (newBrng / 2);
-
-   return newDegree - oldDegree;
-}
-
-void readGPS()
-{
-//  Serial.println("in REad");
-//  clearGPS();
-//  Serial.println("after clear");
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
-  GPS.parse(GPS.lastNMEA());
-  NMEA1=GPS.lastNMEA();
+// void readGPS()
+// {
+// //  Serial.println("in REad");
+// //  clearGPS();
+// //  Serial.println("after clear");
+//   while(!GPS.newNMEAreceived())
+//   {
+//     c=GPS.read();
+//   }
+//   GPS.parse(GPS.lastNMEA());
+//   NMEA1=GPS.lastNMEA();
   
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
-  GPS.parse(GPS.lastNMEA());
-  NMEA2=GPS.lastNMEA();
-  Serial.println(NMEA1);
-  Serial.println(NMEA2);
-  Serial.println("--");
-}
+//   while(!GPS.newNMEAreceived())
+//   {
+//     c=GPS.read();
+//   }
+//   GPS.parse(GPS.lastNMEA());
+//   NMEA2=GPS.lastNMEA();
+//   Serial.println(NMEA1);
+//   Serial.println(NMEA2);
+//   Serial.println("--");
+// }
 
-void clearGPS() //clear old data from serial port
-{
-  while(!GPS.newNMEAreceived())
-  {
-//     Serial.print("recieved: ");
-//     Serial.println(GPS.newNMEAreceived());
-     c=GPS.read();
-  }
-  GPS.parse(GPS.lastNMEA());
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
-  GPS.parse(GPS.lastNMEA());
-  while(!GPS.newNMEAreceived())
-  {
-    c=GPS.read();
-  }
-  GPS.parse(GPS.lastNMEA());
-}
+// void clearGPS() //clear old data from serial port
+// {
+//   while(!GPS.newNMEAreceived())
+//   {
+// //     Serial.print("recieved: ");
+// //     Serial.println(GPS.newNMEAreceived());
+//      c=GPS.read();
+//   }
+//   GPS.parse(GPS.lastNMEA());
+//   while(!GPS.newNMEAreceived())
+//   {
+//     c=GPS.read();
+//   }
+//   GPS.parse(GPS.lastNMEA());
+//   while(!GPS.newNMEAreceived())
+//   {
+//     c=GPS.read();
+//   }
+//   GPS.parse(GPS.lastNMEA());
+// }
