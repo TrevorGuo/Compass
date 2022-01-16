@@ -1,5 +1,6 @@
 // Mahony AHRS for the LSM9DS1  S.J. Remington 2/2021
 // Requires the Sparkfun LSM9DS1 library
+// GitHub Link: https://github.com/jremington/LSM9DS1-AHRS
 // Standard sensor orientation X North (yaw=0), Y West, Z up
 // See: http://www.x-io.co.uk/open-source-imu-and-ahrs-algorithms/
 // NOTE: Sensor X axis is remapped to the opposite direction of the "X arrow" on the Adafruit sensor breakout!
