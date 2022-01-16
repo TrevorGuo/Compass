@@ -47,6 +47,7 @@ double loc1[] = {-1, -1};
 double loc2[] = {-1, -1};
 double loc3[] = {-1, -1};
 double loc4[] = {-1, -1};
+double currPos[2];
 
 int active = -1;
 
@@ -126,10 +127,12 @@ double longPoint = 0.0;
 void loop()                     // run over and over again
 {//  Serial.print("Deg: ");
   Serial.print("Deg: ");
-  delay(500);
   currentYaw = getYaw();
   Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
+  clearGPS();
+  currPos[0] = getLon();
+  currPos[1] = getLat();
   if(GPS.fix==1)
   {
     Serial.print(GPS.latitude);
