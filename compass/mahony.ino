@@ -86,13 +86,13 @@ void setup9DOF()
 {
   //Serial.begin(9600);
   //while (!Serial); //wait for connection
-  //Serial.println("LSM9DS1 AHRS starting");
+  ////Serial.println("LSM9DS1 AHRS starting");
 
   Wire.begin();
 
   if (imu.begin() == false) // with no arguments, this uses default addresses (AG:0x6B, M:0x1E) and i2c port (Wire).
   {
-    Serial.println(F("LSM9DS1 not detected"));
+    //Serial.println(F("LSM9DS1 not detected"));
     while (1);
   }
 }
@@ -166,13 +166,13 @@ float getYaw()
     if (yaw > 180) yaw -= 360.0;
 // skip ypr printing    
     if (millis() - lastPrint > PRINT_SPEED) {
-      Serial.print("ypr ");
-      Serial.print(yaw, 0);
-      Serial.print(", ");
-      Serial.print(pitch, 0);
-      Serial.print(", ");
-      Serial.print(roll, 0);
-      Serial.println();
+      //Serial.print("ypr ");
+      //Serial.print(yaw, 0);
+      //Serial.print(", ");
+      //Serial.print(pitch, 0);
+      //Serial.print(", ");
+      //Serial.print(roll, 0);
+      //Serial.println();
       lastPrint = millis(); // Update lastPrint time
     }
   }
