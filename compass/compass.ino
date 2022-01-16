@@ -18,7 +18,7 @@
 #include <Adafruit_GPS.h> //Adafruit GPS Library
 #include <Adafruit_LSM9DS1.h>
 #include <Adafruit_Sensor.h>
-//#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>
 #include <math.h>
 
 #include <Servo.h>
