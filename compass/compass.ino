@@ -15,18 +15,13 @@
 // Pick one up today at the Adafruit electronics shop
 // and help support open source hardware & software! -ada
 
-#define LED 2
 #include <Adafruit_GPS.h> //Adafruit GPS Library
-
-#include <Wire.h>
-#include <SPI.h>
-#include <SparkFunLSM9DS1.h>
-//#include <Adafruit_LSM9DS1.h>
-//#include <Adafruit_Sensor.h>
-//#include <SoftwareSerial.h>
+#include <Adafruit_LSM9DS1.h>
+#include <Adafruit_Sensor.h>
+#include <SoftwareSerial.h>
 #include <math.h>
-
 #include <Servo.h>
+
 Servo myservo;
 float currentYaw = 0;
 
@@ -48,18 +43,17 @@ int b1_duration = 0;
 int b2_duration = 0;
 int b3_duration = 0;
 int b4_duration = 0;
-double loc1[] = { -1, -1};
-double loc2[] = { -1, -1};
-double loc3[] = { -1, -1};
-double loc4[] = { -1, -1};
+double currPos[2];
 
-int active = -1;
+double locs[4][2] = {{90, 135}, {90, 135}, {90, 135}, {90, 135}};
+int active = 0;
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO  true
 
+Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 
 void setup()
 {
@@ -110,18 +104,15 @@ void setup()
   Serial.println("after sent commands 3");
 
   delay(1000);
-  clearGPS();
-  //Serial.println("Adafruit GPS logging data dump!");
+  Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
-
-
-  myservo.attach(12);
 }
 
 uint32_t updateTime = 1000;
 double latPoint = 0.0;
 double longPoint = 0.0;
+double bearing = 0.0;
 
 void loop()                     // run over and over again
 {
@@ -165,49 +156,52 @@ void loop()                     // run over and over again
 
   //delay(1000);
   currentYaw = getYaw();
-  //Serial.println(currentYaw);
+  Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
-
-  //myservo.write(90 - (currentYaw + getBearingToWayPoint(lat1,long1,lat2,long2))/2);
+  clearGPS();
+  currPos[0] = getLat();
+  currPos[1] = getLon();
+  bearing = getBearingToWaypoint(currPos[0], currPos[1], locs[active][0], locs[active][1]);
+  myservo.write(90 - ((currentYaw + bearing)/ 2));
+  if(GPS.fix==1)
+  {
+    Serial.print(GPS.latitude);
+    Serial.print(GPS.lat);
+    Serial.print(GPS.longitude);
+    Serial.println(GPS.lon);
+    Serial.println("NEXT\n");
+  }
 }//loop
 
 void handleButtons()
 {
   if (digitalRead(BUTTON1))
   {
-    active = 1;
-    if (b1_duration - millis() > 4000)
+    active = 0;
+    if(b1_duration-millis() > 4000)
     {
-      clearGPS();
-      loc1[0] = getLon();
-      loc1[1] = getLat();
+      setPosition();
     }
   } else if (digitalRead(BUTTON2))
   {
-    active = 2;
-    if (b2_duration - millis() > 4000)
+    active = 1;
+    if(b2_duration-millis() > 4000)
     {
-      clearGPS();
-      loc2[0] = getLon();
-      loc2[1] = getLat();
+      setPosition();
     }
   } else if (digitalRead(BUTTON3))
   {
-    active = 3;
-    if (b3_duration - millis() > 4000)
+    active = 2;
+    if(b3_duration-millis() > 4000)
     {
-      clearGPS();
-      loc3[0] = getLon();
-      loc3[1] = getLat();
+      setPosition();
     }
   } else if (digitalRead(BUTTON4))
   {
-    active = 4;
-    if (b4_duration - millis() > 4000)
+    active = 3;
+    if(b4_duration-millis() > 4000)
     {
-      clearGPS();
-      loc4[0] = getLon();
-      loc4[1] = getLat();
+      setPosition();
     }
   } else
   {
@@ -218,76 +212,61 @@ void handleButtons()
   }
 }
 
-double getLon()
-{
-  double retval = -1;
-
-  if (GPS.fix == 1)
-  {
-    retval = GPS.longitude;
-    if (GPS.lon == 'W') {
-      retval *= -1;
-    };
-  }
-
-  return retval;
-}
-
 double getLat()
 {
   double retval = -1;
-
-  if (GPS.fix == 1)
+  if(GPS.fix==1)
   {
     retval = GPS.latitude;
-    if (GPS.lat == 'S') {
-      retval *= -1;
-    };
+    if(GPS.lat == 'S'){retval*=-1;};
   }
-
   return retval;
 }
 
-//https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
-//The math/code to find the bearing between two coordinates was found at the above link.
-float getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
-  float dLon = (long2 - long1);
+double getLon()
+{
+  double retval = -1;
+  if(GPS.fix==1)
+  {
+    retval = GPS.longitude;
+    if(GPS.lon == 'W'){retval*=-1;};
+  }
+  return retval;
+}
 
-  float y = sin(dLon) * cos(lat2);
-  float x = cos(lat1) * sin(lat2) - sin(lat1)
+void setPosition() {
+  clearGPS();
+  locs[active][0] = getLat();
+  locs[active][1] = getLon();
+}
+
+//https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
+//The math/code to find the bearing between two coordinates was found at the above link. 
+
+double toRadians(double degree) {
+  return degree * M_PI / 180;
+}
+
+double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
+    lat1 = toRadians(lat1);
+    long1 = toRadians(long1);
+    lat2 = toRadians(lat2);
+    long2 = toRadians(long2);
+
+    double dLon = (long2 - long1);
+
+    double y = sin(dLon) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1)
             * cos(lat2) * cos(dLon);
 
-  float brng = atan2(y, x);
+    double brng = atan2(y, x);
 
-  brng = brng / M_PI * 180;
-  brng = fmod((brng + 360), 360);
-  brng = 360 - brng; //This line might not be needed?
-
-  return brng;
+    return brng / M_PI * 180;
 }
 
 void savePoint(double lat, double lon) {
   latPoint = lat;
   longPoint = lon;
-}
-
-double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, negative rotates CCW
-  /* Continuous Circuit
-    double degreeDelta = newBrng - oldBrng;
-    if (degreeDelta < 180 && degreeDelta >= 0) //newBrng > oldBrng, and shortest rotation is CW
-      return degreeDelta;
-    else if (degreeDelta > 180 && degreeDelta < 360) //newBrng > oldBrng, and shortest rotation is CCW
-      return degreeDelta - 360;
-    else if (degreeDelta > -180 && degreeDelta < 0) //newBrng < oldBrng, and shortest rotation is CCW
-      return degreeDelta;
-    else //newBrng < oldBrng, and shortest rotation is CW
-      return 360 + degreeDelta;
-  */
-  //N is 90, S is 0 and 180
-  double oldDegree = 90 - (oldBrng / 2);
-  double newDegree = 90 - (newBrng / 2);
-
-  return newDegree - oldDegree;
 }
 
 void readGPS()
