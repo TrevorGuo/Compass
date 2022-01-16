@@ -51,13 +51,17 @@ double loc1[] = {-1, -1};
 double loc2[] = {-1, -1};
 double loc3[] = {-1, -1};
 double loc4[] = {-1, -1};
-double currPos[2];
+double currPos[] = {0,0};
 int active = -1;
 
 double lat1;
-double lat2 = 0;
+double lat2 = -1;
 double long1;
-double long2 = 0; 
+double long2 = -1; 
+
+ float north;
+  double bearing;
+  double heading;
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
@@ -135,8 +139,25 @@ void loop()                     // run over and over again
 
   currPos[0] = getLon();
   currPos[1] = getLat();
-  myservo.write(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0);
-  //myservo.write(90 - (currentYaw / 2));
+//  Serial.println(getBearingToWaypoint(currPos[1],currPos[0],lat2,long2));
+//  Serial.println(fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
+//  Serial.println(currentYaw - fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
+//  myservo.write(fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
+  //myservo.write((90 - fmod(currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2),180)/2.0));
+   north = 90 - (currentYaw / 2);
+   bearing = getBearingToWaypoint(currPos[1],currPos[0],lat2,long2);
+   heading = 90 - (currentYaw / 2 - bearing/2);
+   if(heading > 180)
+   {
+    heading -= 180;
+   }else if(heading < 0)
+   {
+    heading += 180;
+   }
+//  myservo.write(90 - (currentYaw / 2));
+  Serial.println(bearing);
+  Serial.println(heading);
+  myservo.write(heading);
 //
 ////  clearGPS();
 
@@ -224,7 +245,7 @@ void handleButtons()
 
 double getLon()
 {
-  double retval = -1;
+  double retval = currPos[0];
   if(GPS.fix)
   {
       retval = GPS.longitude;
@@ -235,7 +256,7 @@ double getLon()
 
 double getLat()
 {
-  double retval = -1;
+  double retval = currPos[1];
   if(GPS.fix)
   {
     retval = GPS.latitude;
@@ -244,22 +265,25 @@ double getLat()
   return retval;
 }
 
-//https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
-//The math/code to find the bearing between two coordinates was found at the above link. 
-float getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
-    float dLon = (long2 - long1);
+double toRadians(double degree) {
+  return degree * M_PI / 180;
+}
 
-    float y = sin(dLon) * cos(lat2);
-    float x = cos(lat1) * sin(lat2) - sin(lat1)
+double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
+    lat1 = toRadians(lat1);
+    long1 = toRadians(long1);
+    lat2 = toRadians(lat2);
+    long2 = toRadians(long2);
+
+    double dLon = (long2 - long1);
+
+    double y = sin(dLon) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1)
             * cos(lat2) * cos(dLon);
 
-    float brng = atan2(y, x);
+    double brng = atan2(y, x);
 
-    brng = brng / M_PI * 180;
-    brng = fmod((brng + 360),360);
-    brng = 360 - brng; //This line might not be needed?
-
-    return brng;
+    return brng / M_PI * 180;
 }
 
 void savePoint(double lat, double lon) {
