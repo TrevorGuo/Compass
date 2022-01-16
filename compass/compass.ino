@@ -16,8 +16,12 @@
 // and help support open source hardware & software! -ada
 
 #include <Adafruit_GPS.h> //Adafruit GPS Library
-#include <Adafruit_LSM9DS1.h>
-#include <Adafruit_Sensor.h>
+
+#include <Wire.h>
+#include <SPI.h>
+#include <SparkFunLSM9DS1.h>
+//#include <Adafruit_LSM9DS1.h>
+//#include <Adafruit_Sensor.h>
 //#include <SoftwareSerial.h>
 #include <math.h>
 
@@ -55,23 +59,23 @@ int active = -1;
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO  true
 
-Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
+//Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 void setupSensor()
 {
   // 1.) Set the accelerometer range
-  lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_2G);
+  //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_2G);
   //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_4G);
   //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_8G);
   //lsm.setupAccel(lsm.LSM9DS1_ACCELRANGE_16G);
   
   // 2.) Set the magnetometer sensitivity
-  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
+  //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_4GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_8GAUSS);
   //lsm.setupMag(lsm.LSM9DS1_MAGGAIN_12GAUSS);
 //  lsm.setupMag(lsm.LSM9DS1_MAGGAIN_16GAUSS);
 
   // 3.) Setup the gyroscope
-  lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
+  //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS);
   //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_500DPS);
   //lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_2000DPS);
 }
@@ -88,6 +92,8 @@ void setup()
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
+
+  setup9DOF();
 
 //  while (!Serial) {
 //    delay(1); // will pause Zero, Leonardo, etc until serial console opens
@@ -123,11 +129,9 @@ double latPoint = 0.0;
 double longPoint = 0.0;
 
 void loop()                     // run over and over again
-{//  Serial.print("Deg: ");
-//  delay(500);
-//  Serial.println(getTrueNorth());
+{
   handleButtons();
-//  clearGPS();
+  
   Serial.print("Fix: ");
   Serial.println(GPS.fix);
   
@@ -154,6 +158,9 @@ void loop()                     // run over and over again
   Serial.print("a: ");
   Serial.println(active);
 
+  currentYaw = getYaw();
+  Serial.println(currentYaw);
+  myservo.write(90 - (currentYaw / 2));
 }//loop
 
 void handleButtons()
@@ -206,22 +213,26 @@ void handleButtons()
 double getLon()
 {
   double retval = -1;
+  
   if(GPS.fix==1)
   {
     retval = GPS.longitude;
     if(GPS.lon == 'W'){retval*=-1;};
   }
+  
   return retval;
 }
 
 double getLat()
 {
   double retval = -1;
+  
   if(GPS.fix==1)
   {
     retval = GPS.latitude;
     if(GPS.lat == 'S'){retval*=-1;};
   }
+  
   return retval;
 }
 
@@ -241,53 +252,6 @@ float getBearingToWaypoint(double lat1, double long1, double lat2, double long2)
     brng = 360 - brng; //This line might not be needed?
 
     return brng;
-}
-
-double getTrueNorth() {
-    lsm.read();  /* ask it to read in the data */ 
-//    Serial.println("read");
-
-    /* Get a new sensor event */ 
-    sensors_event_t a, m, g, temp;
-
-    lsm.getEvent(&a, &m, &g, &temp); 
-
-    double magy = m.magnetic.y;
-    double magx = m.magnetic.x;
-
-//    double y = 180 / M_PI * acos(fmod(((-(magy) / 50)+1), 2)-1);
-//    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)), 2));
-
-    double deg = 180 / M_PI * atan2(abs(magy), abs(magx));
-    
-    Serial.println(deg);
-    if(magx < 0 && magy > 0)
-    {
-      deg = 180-deg;
-    }else if(magx < 0 && magy < 0)
-    {
-      deg = 180+deg;
-    }else if(magx > 0 && magy < 0)
-    {
-      deg = 360-deg;
-    }
-    
-    Serial.print("magx: ");
-    Serial.println(magx);
-    Serial.print("magy: ");
-    Serial.println(magy);
-    return deg;
-//    Serial.print("x: ");
-//    Serial.println(x);
-//    Serial.print("y: ");
-//    Serial.println(y);
-//    
-
-//    double degree = y;
-//    if (x < 0) {
-//      degree = 360 - degree;
-//    }
-//    return degree;
 }
 
 void savePoint(double lat, double lon) {

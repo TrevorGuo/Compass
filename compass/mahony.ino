@@ -84,9 +84,9 @@ static float yaw, pitch, roll; //Euler angle output
 
 void setup9DOF()
 {
-  Serial.begin(9600);
-  while (!Serial); //wait for connection
-  Serial.println("LSM9DS1 AHRS starting");
+  //Serial.begin(9600);
+  //while (!Serial); //wait for connection
+  //Serial.println("LSM9DS1 AHRS starting");
 
   Wire.begin();
 
@@ -101,7 +101,6 @@ float getYaw()
 {
   static char updated = 0; //flags for sensor updates
   static float Gxyz[3], Axyz[3], Mxyz[3]; //centered and scaled gyro/accel/mag data
-
   // Update the sensor values whenever new data is available
   if ( imu.accelAvailable() ) {
     updated |= 1;  //acc updated
@@ -115,6 +114,7 @@ float getYaw()
     updated |= 4; //gyro updated
     imu.readGyro();
   }
+  
   if (updated == 7) //all sensors updated?
   {
     updated = 0; //reset update flags
@@ -126,7 +126,7 @@ float getYaw()
 
     Axyz[0] = -Axyz[0]; //fix accel/gyro handedness
     Gxyz[0] = -Gxyz[0]; //must be done after offsets & scales applied to raw data
-
+    
     now = micros();
     deltat = (now - last) * 1.0e-6; //seconds since last update
     last = now;
