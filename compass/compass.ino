@@ -15,18 +15,13 @@
 // Pick one up today at the Adafruit electronics shop
 // and help support open source hardware & software! -ada
 
-#define LED 2
 #include <Adafruit_GPS.h> //Adafruit GPS Library
-
-#include <Wire.h>
-#include <SPI.h>
-#include <SparkFunLSM9DS1.h>
-//#include <Adafruit_LSM9DS1.h>
-//#include <Adafruit_Sensor.h>
-//#include <SoftwareSerial.h>
+#include <Adafruit_LSM9DS1.h>
+#include <Adafruit_Sensor.h>
+#include <SoftwareSerial.h>
 #include <math.h>
-
 #include <Servo.h>
+
 Servo myservo;
 float currentYaw = 0;
 
@@ -34,8 +29,8 @@ float currentYaw = 0;
 
 // Connect to the GPS on the hardware port
 
-//SoftwareSerial mySerial(3, 2);
-Adafruit_GPS GPS(&Serial);
+SoftwareSerial mySerial(3, 2);
+Adafruit_GPS GPS(&mySerial);
 
 String NMEA1;
 String NMEA2;
@@ -48,63 +43,44 @@ int b1_duration = 0;
 int b2_duration = 0;
 int b3_duration = 0;
 int b4_duration = 0;
-double loc1[] = {-1, -1};
-double loc2[] = {-1, -1};
-double loc3[] = {-1, -1};
-double loc4[] = {-1, -1};
+double currPos[2];
 
-int active = -1;
+double locs[4][2] = {{90, 135}, {90, 135}, {90, 135}, {90, 135}};
+int active = 0;
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO  true
 
+Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 
 void setup()
 {
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
   //while (!Serial);  // uncomment to have the sketch wait until Serial is ready
 
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
-  Serial.begin(9600);
-  //Serial.println("starting");
+  Serial.begin(115200);
+  Serial.println("starting");
   pinMode(BUTTON1, INPUT);
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
 
-  setup9DOF();
-
-//  while (!Serial) {
-//    delay(1); // will pause Zero, Leonardo, etc until serial console opens
-//  }
-////    //Serial.println("LSM9DS1 data read demo");
-////  
-////  // Try to initialise and warn if we couldn't detect the chip
-//  if (!lsm.begin())
-//  {
-//    //Serial.println("Oops ... unable to initialize the LSM9DS1. Check your wiring!");
-//    while (1);
-//  }
-////  //Serial.println("Found LSM9DS1 9DOF");
-//  setupSensor();
-//  //Serial.println("set up");
+  while (!Serial) {
+    delay(1); // will pause Zero, Leonardo, etc until serial console opens
+  }
+  setupSensor();
+  Serial.println("set up");
   GPS.begin(9600);
   GPS.sendCommand("$PGCMD,33,0*6D");
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-  
   delay(1000);
-  clearGPS();
-  //Serial.println("Adafruit GPS logging data dump!");
+  Serial.println("Adafruit GPS logging data dump!");
 
   // 9600 NMEA is the default baud rate for MTK - some use 4800
-
-
-  myservo.attach(12);
 }
 
 uint32_t updateTime = 1000;
@@ -112,81 +88,53 @@ double latPoint = 0.0;
 double longPoint = 0.0;
 
 void loop()                     // run over and over again
-{
-  clearGPS();
-  //handleButtons();
-  
-  //Serial.print("Fix: ");
-  //Serial.println(GPS.fix);
-  
-  //Serial.print("1: ");
-  //Serial.print(loc1[0]);
-  //Serial.print(", ");
-  //Serial.println(loc1[1]);
-  
-  //Serial.print("2: ");
-  //Serial.print(loc2[0]);
-  //Serial.print(", ");
-  //Serial.println(loc2[1]);
-
-  //Serial.print("3: ");
-  //Serial.print(loc3[0]);
-  //Serial.print(", ");
-  //Serial.println(loc3[1]);
-
-  //Serial.print("4: ");
-  //Serial.print(loc4[0]);
-  //Serial.print(", ");
-  //Serial.println(loc4[1]);
-
-  //Serial.print("a: ");
-  //Serial.println(active);
-
-  //delay(1000);
+{//  Serial.print("Deg: ");
+  Serial.print("Deg: ");
   currentYaw = getYaw();
-  //Serial.println(currentYaw);
+  Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
-
-  //myservo.write(90 - (currentYaw + getBearingToWayPoint(lat1,long1,lat2,long2))/2);
+  clearGPS();
+  currPos[0] = getLon();
+  currPos[1] = getLat();
+  if(GPS.fix==1)
+  {
+    Serial.print(GPS.latitude);
+    Serial.print(GPS.lat);
+    Serial.print(GPS.longitude);
+    Serial.println(GPS.lon);
+    Serial.println("NEXT\n");
+  }
 }//loop
 
 void handleButtons()
 {
   if(digitalRead(BUTTON1))
   {
-    active = 1;
+    active = 0;
     if(b1_duration-millis() > 4000)
     {
-      clearGPS();
-      loc1[0] = getLon();
-      loc1[1] = getLat();
+      setPosition();
     }
   }else if(digitalRead(BUTTON2))
   {
-    active = 2;
+    active = 1;
     if(b2_duration-millis() > 4000)
     {
-      clearGPS();
-      loc2[0] = getLon();
-      loc2[1] = getLat();
+      setPosition();
     }
   }else if(digitalRead(BUTTON3))
   {
-    active = 3;
+    active = 2;
     if(b3_duration-millis() > 4000)
     {
-      clearGPS();
-      loc3[0] = getLon();
-      loc3[1] = getLat();
+      setPosition();
     }
   }else if(digitalRead(BUTTON4))
   {
-    active = 4;
+    active = 3;
     if(b4_duration-millis() > 4000)
     {
-      clearGPS();
-      loc4[0] = getLon();
-      loc4[1] = getLat();
+      setPosition();
     }
   }else
   {
@@ -200,32 +148,44 @@ void handleButtons()
 double getLon()
 {
   double retval = -1;
-  
   if(GPS.fix==1)
   {
     retval = GPS.longitude;
     if(GPS.lon == 'W'){retval*=-1;};
   }
-  
   return retval;
 }
 
 double getLat()
 {
   double retval = -1;
-  
   if(GPS.fix==1)
   {
     retval = GPS.latitude;
     if(GPS.lat == 'S'){retval*=-1;};
   }
-  
   return retval;
+}
+
+void setPosition() {
+  clearGPS();
+  locs[active][0] = getLon();
+  locs[active][1] = getLat();
 }
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
-float getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
+
+float toRadians(float degree) {
+  return degree * M_PI / 180;
+}
+
+float getBearingToWaypoint(float lat1, float long1, float lat2, float long2) {
+    lat1 = toRadians(lat1);
+    long1 = toRadians(long1);
+    lat2 = toRadians(lat2);
+    long2 = toRadians(long2);
+
     float dLon = (long2 - long1);
 
     float y = sin(dLon) * cos(lat2);
@@ -234,35 +194,12 @@ float getBearingToWaypoint(double lat1, double long1, double lat2, double long2)
 
     float brng = atan2(y, x);
 
-    brng = brng / M_PI * 180;
-    brng = fmod((brng + 360),360);
-    brng = 360 - brng; //This line might not be needed?
-
-    return brng;
+    return brng / M_PI * 180;
 }
 
 void savePoint(double lat, double lon) {
     latPoint = lat;
     longPoint = lon;
-}
-
-double changeInDegree(double oldBrng, double newBrng) { //Positive rotates CW, negative rotates CCW
-    /* Continuous Circuit
-    double degreeDelta = newBrng - oldBrng;
-    if (degreeDelta < 180 && degreeDelta >= 0) //newBrng > oldBrng, and shortest rotation is CW
-        return degreeDelta;
-    else if (degreeDelta > 180 && degreeDelta < 360) //newBrng > oldBrng, and shortest rotation is CCW
-        return degreeDelta - 360;
-    else if (degreeDelta > -180 && degreeDelta < 0) //newBrng < oldBrng, and shortest rotation is CCW
-        return degreeDelta;
-    else //newBrng < oldBrng, and shortest rotation is CW
-        return 360 + degreeDelta;
-    */
-   //N is 90, S is 0 and 180
-   double oldDegree = 90 - (oldBrng / 2);
-   double newDegree = 90 - (newBrng / 2);
-
-   return newDegree - oldDegree;
 }
 
 void readGPS()
@@ -272,9 +209,6 @@ void readGPS()
   {
     c=GPS.read();
   }
-  digitalWrite(LED, HIGH);
-  delay(100);
-  digitalWrite(LED, LOW);
   GPS.parse(GPS.lastNMEA());
   NMEA1=GPS.lastNMEA();
   
@@ -284,26 +218,26 @@ void readGPS()
   }
   GPS.parse(GPS.lastNMEA());
   NMEA2=GPS.lastNMEA();
-  //Serial.println(NMEA1);
-  //Serial.println(NMEA2);
-  //Serial.println("--");
+  Serial.println(NMEA1);
+  Serial.println(NMEA2);
+  Serial.println("--");
 }
 
 void clearGPS() //clear old data from serial port
 {
-//  while(!GPS.newNMEAreceived())
-//  {
-//    c=GPS.read();
-//  }
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
   GPS.parse(GPS.lastNMEA());
-//  while(!GPS.newNMEAreceived())
-//  {
-//    c=GPS.read();
-//  }
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
   GPS.parse(GPS.lastNMEA());
-//  while(!GPS.newNMEAreceived())
-//  {
-//    c=GPS.read();
-//  }
+  while(!GPS.newNMEAreceived())
+  {
+    c=GPS.read();
+  }
   GPS.parse(GPS.lastNMEA());
 }
