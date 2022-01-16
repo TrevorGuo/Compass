@@ -16,24 +16,14 @@
 // and help support open source hardware & software! -ada
 
 #include <Adafruit_GPS.h> //Adafruit GPS Library
-#include <Adafruit_LSM9DS1.h>
 #include <Adafruit_Sensor.h>
-#include <SoftwareSerial.h>
-#include <math.h>
 #include <Servo.h>
-
-Servo myservo;
-float currentYaw = 0;
-
 #include <Wire.h>
 #include <SPI.h>
 #include <SparkFunLSM9DS1.h>
-//#include <Adafruit_LSM9DS1.h>
-//#include <Adafruit_Sensor.h>
-#include <SoftwareSerial.h>
 #include <math.h>
-
 #include <Servo.h>
+
 Servo myservo;
 float currentYaw = 0;
 
@@ -41,8 +31,8 @@ float currentYaw = 0;
 
 // Connect to the GPS on the hardware port
 
-SoftwareSerial mySerial(3, 2);
-Adafruit_GPS GPS(&mySerial);
+//Serial mySerial;
+Adafruit_GPS GPS(&Serial);
 
 String NMEA1;
 String NMEA2;
@@ -61,6 +51,7 @@ double loc3[] = {-1, -1};
 double loc4[] = {-1, -1};
 double currPos[2];
 int active = -1;
+int lastposCheck = 0;
 
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
@@ -104,36 +95,9 @@ void loop()                     // run over and over again
   currentYaw = getYaw();
   Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
-  clearGPS();
   currPos[0] = getLon();
   currPos[1] = getLat();
-/*
-  Serial.print("Fix: ");
-  Serial.println(GPS.fix);
   
-  Serial.print("1: ");
-  Serial.print(loc1[0]);
-  Serial.print(", ");
-  Serial.println(loc1[1]);
-  
-  Serial.print("2: ");
-  Serial.print(loc2[0]);
-  Serial.print(", ");
-  Serial.println(loc2[1]);
-
-  Serial.print("3: ");
-  Serial.print(loc3[0]);
-  Serial.print(", ");
-  Serial.println(loc3[1]);
-
-  Serial.print("4: ");
-  Serial.print(loc4[0]);
-  Serial.print(", ");
-  Serial.println(loc4[1]);
-
-  Serial.print("a: ");
-  Serial.println(active);
-*/
 }//loop
 
 void handleButtons()
@@ -196,6 +160,7 @@ double getLon()
 
 double getLat()
 {
+  double retval = -1;
   if(GPS.fix==1)
   {
     retval = GPS.latitude;
@@ -220,53 +185,6 @@ float getBearingToWaypoint(double lat1, double long1, double lat2, double long2)
     brng = 360 - brng; //This line might not be needed?
 
     return brng;
-}
-
-double getTrueNorth() {
-    lsm.read();  /* ask it to read in the data */ 
-//    Serial.println("read");
-
-    /* Get a new sensor event */ 
-    sensors_event_t a, m, g, temp;
-
-    lsm.getEvent(&a, &m, &g, &temp); 
-
-    double magy = m.magnetic.y;
-    double magx = m.magnetic.x;
-
-//    double y = 180 / M_PI * acos(fmod(((-(magy) / 50)+1), 2)-1);
-//    double x = 180 / M_PI * asin(fmod((((magx - 3) / 50)), 2));
-
-    double deg = 180 / M_PI * atan2(abs(magy), abs(magx));
-    
-    Serial.println(deg);
-    if(magx < 0 && magy > 0)
-    {
-      deg = 180-deg;
-    }else if(magx < 0 && magy < 0)
-    {
-      deg = 180+deg;
-    }else if(magx > 0 && magy < 0)
-    {
-      deg = 360-deg;
-    }
-    
-    Serial.print("magx: ");
-    Serial.println(magx);
-    Serial.print("magy: ");
-    Serial.println(magy);
-    return deg;
-//    Serial.print("x: ");
-//    Serial.println(x);
-//    Serial.print("y: ");
-//    Serial.println(y);
-//    
-
-//    double degree = y;
-//    if (x < 0) {
-//      degree = 360 - degree;
-//    }
-//    return degree;
 }
 
 void savePoint(double lat, double lon) {
