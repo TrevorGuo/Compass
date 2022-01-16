@@ -86,6 +86,7 @@ void setup()
 uint32_t updateTime = 1000;
 double latPoint = 0.0;
 double longPoint = 0.0;
+double bearing = 0.0;
 
 void loop()                     // run over and over again
 {//  Serial.print("Deg: ");
@@ -94,8 +95,10 @@ void loop()                     // run over and over again
   Serial.println(currentYaw);
   myservo.write(90 - (currentYaw / 2));
   clearGPS();
-  currPos[0] = getLon();
-  currPos[1] = getLat();
+  currPos[0] = getLat();
+  currPos[1] = getLon();
+  bearing = getBearingToWaypoint(currPos[0], currPos[1], locs[active][0], locs[active][1]);
+  myservo.write(90 - ((currentYaw + bearing)/ 2));
   if(GPS.fix==1)
   {
     Serial.print(GPS.latitude);
@@ -145,17 +148,6 @@ void handleButtons()
   }
 }
 
-double getLon()
-{
-  double retval = -1;
-  if(GPS.fix==1)
-  {
-    retval = GPS.longitude;
-    if(GPS.lon == 'W'){retval*=-1;};
-  }
-  return retval;
-}
-
 double getLat()
 {
   double retval = -1;
@@ -167,32 +159,43 @@ double getLat()
   return retval;
 }
 
+double getLon()
+{
+  double retval = -1;
+  if(GPS.fix==1)
+  {
+    retval = GPS.longitude;
+    if(GPS.lon == 'W'){retval*=-1;};
+  }
+  return retval;
+}
+
 void setPosition() {
   clearGPS();
-  locs[active][0] = getLon();
-  locs[active][1] = getLat();
+  locs[active][0] = getLat();
+  locs[active][1] = getLon();
 }
 
 //https://stackoverflow.com/questions/3932502/calculate-angle-between-two-latitude-longitude-points
 //The math/code to find the bearing between two coordinates was found at the above link. 
 
-float toRadians(float degree) {
+double toRadians(double degree) {
   return degree * M_PI / 180;
 }
 
-float getBearingToWaypoint(float lat1, float long1, float lat2, float long2) {
+double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
     lat1 = toRadians(lat1);
     long1 = toRadians(long1);
     lat2 = toRadians(lat2);
     long2 = toRadians(long2);
 
-    float dLon = (long2 - long1);
+    double dLon = (long2 - long1);
 
-    float y = sin(dLon) * cos(lat2);
-    float x = cos(lat1) * sin(lat2) - sin(lat1)
+    double y = sin(dLon) * cos(lat2);
+    double x = cos(lat1) * sin(lat2) - sin(lat1)
             * cos(lat2) * cos(dLon);
 
-    float brng = atan2(y, x);
+    double brng = atan2(y, x);
 
     return brng / M_PI * 180;
 }
