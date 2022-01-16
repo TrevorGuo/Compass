@@ -64,6 +64,7 @@ int active = -1;
 void setup()
 {
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
   //while (!Serial);  // uncomment to have the sketch wait until Serial is ready
 
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
@@ -112,7 +113,6 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
-  digitalWrite(LED, HIGH);
   clearGPS();
   //handleButtons();
   
@@ -272,6 +272,9 @@ void readGPS()
   {
     c=GPS.read();
   }
+  digitalWrite(LED, HIGH);
+  delay(100);
+  digitalWrite(LED, LOW);
   GPS.parse(GPS.lastNMEA());
   NMEA1=GPS.lastNMEA();
   
