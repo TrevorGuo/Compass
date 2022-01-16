@@ -130,8 +130,8 @@ double longPoint = 0.0;
 
 void loop()                     // run over and over again
 {
-  handleButtons();
-  
+  //handleButtons();
+  /*
   Serial.print("Fix: ");
   Serial.println(GPS.fix);
   
@@ -157,10 +157,11 @@ void loop()                     // run over and over again
 
   Serial.print("a: ");
   Serial.println(active);
-
+*/
+  delay(1000);
   currentYaw = getYaw();
   Serial.println(currentYaw);
-  myservo.write(90 - (currentYaw / 2));
+//  myservo.write(90 - (currentYaw / 2));
 }//loop
 
 void handleButtons()
