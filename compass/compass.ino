@@ -49,12 +49,9 @@ unsigned long b4_duration = 0;
 
 double powellLat = 3407.18620578034;
 double powellLong =  -11844.217660203313;
-double loc1[] = {powellLat, powellLong};
-double loc2[] = {powellLat, powellLong};
-double loc3[] = {powellLat, powellLong};
-double loc4[] = {powellLat, powellLong};
+double locs[4][2] = {{powellLat, powellLong}, {powellLat, powellLong}, {powellLat, powellLong}, {powellLat, powellLong}};
 double currPos[] = {0,0};
-//int active = -1;
+int active = 0;
 
 double lat2 = -1;
 double long2 = -1; 
@@ -136,15 +133,14 @@ void loop()                     // run over and over again
   currentYaw = getYaw();
   Serial.println(currentYaw);
 
-  currPos[0] = getLon();
-  currPos[1] = getLat();
+  setPosition(currPos);
 //  Serial.println(getBearingToWaypoint(currPos[1],currPos[0],lat2,long2));
 //  Serial.println(fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
 //  Serial.println(currentYaw - fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
 //  myservo.write(fmod(90 - (currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2))/2.0, 180));
   //myservo.write((90 - fmod(currentYaw + getBearingToWaypoint(currPos[1],currPos[0],lat2,long2),180)/2.0));
    north = 90 - (currentYaw / 2);
-   bearing = getBearingToWaypoint(currPos[1],currPos[0],lat2,long2);
+   bearing = getBearingToWaypoint();
    heading = 90 - (currentYaw / 2 - bearing/2);
    if(heading > 180)
    {
@@ -170,20 +166,20 @@ void loop()                     // run over and over again
   Serial.println(currPos[1]);
 //  
   Serial.print("1: ");
-  Serial.print(loc1[0]);
-  Serial.println(loc1[1]);
+  Serial.print(locs[0][0]);
+  Serial.println(locs[1][1]);
 //
   Serial.print("2: ");
-  Serial.print(loc2[0]);
-  Serial.println(loc2[1]);
+  Serial.print(locs[1][0]);
+  Serial.println(locs[1][1]);
 //
   Serial.print("3: ");
-  Serial.print(loc3[0]);
-  Serial.println(loc3[1]);
+  Serial.print(locs[2][0]);
+  Serial.println(locs[2][1]);
 //
   Serial.print("4: ");
-  Serial.print(loc4[0]);
-  Serial.println(loc4[1]);
+  Serial.print(locs[3][0]);
+  Serial.println(locs[4][1]);
   
 }//loop
 
@@ -191,47 +187,31 @@ void handleButtons()
 {
   if(digitalRead(BUTTON1))
   {
-    //active = 1;
-    lat2 = loc1[1];
-    long2 = loc1[0];
+    active = 0;
     if(millis()-b1_duration > 4000)
     {
-//      clearGPS();
-      loc1[0] = getLon();
-      loc1[1] = getLat();
+      setPosition(locs[active]);
     }
   }else if(digitalRead(BUTTON2))
   {
-    //active = 2;
-    lat2 = loc2[1];
-    long2 = loc2[0];
+    active = 1;
     if(millis()-b2_duration > 4000)
     {
-//      clearGPS();
-      loc2[0] = getLon();
-      loc2[1] = getLat();
+      setPosition(locs[active]);
     }
   }else if(digitalRead(BUTTON3))
   {
-    //active = 3;
-    lat2 = loc3[1];
-    long2 = loc3[0];
+    active = 2;
     if(millis()-b3_duration > 4000)
     {
-//      clearGPS();
-      loc3[0] = getLon();
-      loc3[1] = getLat();
+      setPosition(locs[active]);
     }
   }else if(digitalRead(BUTTON4))
   {
-    //active = 4;
-    lat2 = loc4[1];
-    long2 = loc4[0];
+    active = 3;
     if(millis()-b4_duration > 4000)
     {
-//      clearGPS();
-      loc4[0] = getLon();
-      loc4[1] = getLat();
+      setPosition(locs[active]);
     }
   }else
   {
@@ -242,15 +222,9 @@ void handleButtons()
   }
 }
 
-double getLon()
-{
-  double retval = currPos[0];
-  if(GPS.fix)
-  {
-      retval = GPS.longitude;
-      if(GPS.lon == 'W'){retval*=-1;};
-  }
-  return retval;
+void setPosition(double* loc) {
+  loc[0] = getLat();
+  loc[1] = getLon();
 }
 
 double getLat()
@@ -264,15 +238,26 @@ double getLat()
   return retval;
 }
 
+double getLon()
+{
+  double retval = currPos[0];
+  if(GPS.fix)
+  {
+      retval = GPS.longitude;
+      if(GPS.lon == 'W'){retval*=-1;};
+  }
+  return retval;
+}
+
 double toRadians(double degree) {
   return degree * M_PI / 180;
 }
 
-double getBearingToWaypoint(double lat1, double long1, double lat2, double long2) {
-    lat1 = toRadians(lat1);
-    long1 = toRadians(long1);
-    lat2 = toRadians(lat2);
-    long2 = toRadians(long2);
+double getBearingToWaypoint() {
+    lat1 = toRadians(currPos[0]);
+    long1 = toRadians(currPos[1]);
+    lat2 = toRadians(locs[active][0]);
+    long2 = toRadians(locs[active][1]);
 
     double dLon = (long2 - long1);
 
